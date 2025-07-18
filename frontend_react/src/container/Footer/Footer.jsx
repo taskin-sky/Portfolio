@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { images } from '../../constants';
 import { AppWrap, MotionWrap } from '../../wrapper';
@@ -21,14 +21,35 @@ const Footer = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // const handleSubmit = () => {
+  //   setLoading(true);
+
+  //   const contact = {
+  //     _type: 'contact',
+  //     name: formData.username,
+  //     email: formData.email,
+  //     message: formData.message,
+  //   };
+
+  //   client
+  //     .create(contact)
+  //     .then(() => {
+  //       setLoading(false);
+  //       setIsFormSubmitted(true);
+  //     })
+  //     .catch((err) => console.log(err));
+  // };
+
   const handleSubmit = () => {
+    if (!username || !email.includes('@') || !message) return;
+
     setLoading(true);
 
     const contact = {
       _type: 'contact',
-      name: formData.username,
-      email: formData.email,
-      message: formData.message,
+      name: username,
+      email,
+      message,
     };
 
     client
@@ -36,9 +57,23 @@ const Footer = () => {
       .then(() => {
         setLoading(false);
         setIsFormSubmitted(true);
+
+        // ✅ CLEAR the form inputs here
+        setFormData({
+          username: '',
+          email: '',
+          message: '',
+        });
       })
       .catch((err) => console.log(err));
   };
+
+  useEffect(() => {
+    if (isFormSubmitted) {
+      const timer = setTimeout(() => setIsFormSubmitted(false), 3000);
+      return () => clearTimeout(timer); // cleanup in case component unmounts early
+    }
+  }, [isFormSubmitted]);
 
   return (
     <>
@@ -58,11 +93,12 @@ const Footer = () => {
           </a>
         </div>
       </div>
+
       {!isFormSubmitted ? (
         <div className="app__footer-form app__flex">
-          <div className="app__flex">
+          <div className="app__flex onno-color">
             <input
-              className="p-text"
+              className="p-text ok"
               type="text"
               placeholder="Your Name"
               name="username"
@@ -70,6 +106,7 @@ const Footer = () => {
               onChange={handleChangeInput}
             />
           </div>
+
           <div className="app__flex">
             <input
               className="p-text"
@@ -80,6 +117,7 @@ const Footer = () => {
               onChange={handleChangeInput}
             />
           </div>
+
           <div>
             <textarea
               className="p-text"
@@ -89,7 +127,23 @@ const Footer = () => {
               onChange={handleChangeInput}
             />
           </div>
-          <button type="button" className="p-text" onClick={handleSubmit}>
+
+          <button
+            type="button"
+            className="p-text"
+            onClick={handleSubmit}
+            disabled={!username || !email.includes('@') || !message}
+            style={{
+              backgroundColor:
+                username && email.includes('@') && message
+                  ? '#2430af'
+                  : 'var(--primary-color)',
+              cursor:
+                username && email.includes('@') && message
+                  ? 'pointer'
+                  : 'not-allowed',
+            }}
+          >
             {!loading ? 'Send Message' : 'Sending...'}
           </button>
         </div>
@@ -105,5 +159,5 @@ const Footer = () => {
 export default AppWrap(
   MotionWrap(Footer, 'app__footer'),
   'contact',
-  'app__whitebg'
+  'app__primarybg'
 );
